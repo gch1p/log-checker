@@ -10,7 +10,7 @@ from argparse import ArgumentParser
 
 def readstate(file: str) -> dict:
     if not os.path.exists(file):
-        default_state = {'seek': 0}
+        default_state = {'seek': 0, 'size': 0}
         writestate(file, default_state)
         return default_state
 
@@ -41,15 +41,22 @@ def main():
 
     # read file
     state = readstate(args.state_file)
+    fsize = os.path.getsize(args.log_file)
+
+    if fsize < state['size']:
+        state['seek'] = 0
+
     with open(args.log_file, 'r') as f:
-        # jump to the latest readed position
-        f.seek(state['seek'])
+        if state['seek']:
+            # jump to the latest readed position
+            f.seek(state['seek'])
 
         # read till the end of the file
         content = f.read()
 
         # save new position
         state['seek'] = f.tell()
+        state['size'] = fsize
         writestate(args.state_file, state)
 
         # if got something, send it to telegram
