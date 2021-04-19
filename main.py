@@ -2,45 +2,24 @@
 import requests
 import sys
 import traceback
-import json
 import os
 
 from argparse import ArgumentParser
-
-
-def readstate(file: str) -> dict:
-    if not os.path.exists(file):
-        default_state = {'seek': 0, 'size': 0}
-        writestate(file, default_state)
-        return default_state
-
-    with open(file, 'r') as f:
-        return json.loads(f.read())
-
-
-def writestate(file: str, state: dict):
-    with open(file, 'w') as f:
-        f.write(json.dumps(state))
-
+from jstate import JState
 
 def main():
     # parse arguments
     parser = ArgumentParser()
-    parser.add_argument('--log-file',
-                        type=str,
-                        help='A file to read from')
-    parser.add_argument('--state-file',
-                        default=('%s/.log-checker.state' % os.getenv('HOME')))
-    parser.add_argument('--token',
-                        help='Telegram bot token')
-    parser.add_argument('--chat-id',
-                        type=int,
-                        help='Telegram chat id (with bot)')
-
+    parser.add_argument('--log-file', type=str, help='A file to read from')
+    parser.add_argument('--state-file', default=('%s/.log-checker.state' % os.getenv('HOME')))
+    parser.add_argument('--token', help='Telegram bot token')
+    parser.add_argument('--chat-id', type=int, help='Telegram chat id (with bot)')
     args = parser.parse_args()
 
     # read file
-    state = readstate(args.state_file)
+    jstate = JState(args.state_file, default=dict(seek=0, size=0))
+    state = jstate.read()
+
     fsize = os.path.getsize(args.log_file)
 
     if fsize < state['size']:
@@ -57,7 +36,7 @@ def main():
         # save new position
         state['seek'] = f.tell()
         state['size'] = fsize
-        writestate(args.state_file, state)
+        jstate.write(state)
 
         # if got something, send it to telegram
         if content != '':
