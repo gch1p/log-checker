@@ -1,2 +1,2 @@
 requests~=2.25.1
-jstate~=0.0.4
+ch1p~=0.0.3

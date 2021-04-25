@@ -5,7 +5,8 @@ import traceback
 import os
 
 from argparse import ArgumentParser
-from jstate import JState
+from ch1p import State
+
 
 def main():
     # parse arguments
@@ -17,7 +18,7 @@ def main():
     args = parser.parse_args()
 
     # read file
-    jstate = JState(args.state_file, default=dict(seek=0, size=0))
+    jstate = State(file=args.state_file, default=dict(seek=0, size=0))
     state = jstate.read()
 
     fsize = os.path.getsize(args.log_file)
